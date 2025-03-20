@@ -1,25 +1,21 @@
 var express = require('express');
 var router = express.Router();
 let categoryModel = require('../schemas/category');
-const { ConnectionCheckOutFailedEvent } = require('mongodb');
+let {check_authentication} = require('../utils/check_auth');
 
-function buildQuery(obj){
-  console.log(obj);
-  let result = {};
-  if(obj.name){
-    result.name = new RegExp(obj.name, 'i');
-  }
-  return result;
-}
 
-router.get('/', async function(req, res, next) {    
-  let categories = await categoryModel.find(buildQuery(req.query));
+
+/* GET users listing. */
+router.get('/', async function(req, res, next) {
+  
+
+  let categories = await categoryModel.find({});
+
   res.status(200).send({
     success:true,
     data:categories
   });
-}
-);
+});
 
 router.get('/:id', async function(req, res, next) {
   try {
@@ -35,22 +31,38 @@ router.get('/:id', async function(req, res, next) {
       message:"khong co id phu hop"
     });
   }
-}
-);
+});
 
-router.post('/', async function(req, res, next) {    
+router.post('/',check_authentication(constants.MOD_PERMISSION), async function(req, res, next) {
   try {
     let newCategory = new categoryModel({
-      name:req.body.name,
-      description:req.body.description
-    });
+      name: req.body.name,
+    })
     await newCategory.save();
-    res.status(201).send({
+    res.status(200).send({
       success:true,
       data:newCategory
     });
   } catch (error) {
-    res.status(400).send({
+    res.status(404).send({
+      success:false,
+      message:error.message
+    });
+  }
+});
+
+router.put('/:id',check_authentication(constants.MOD_PERMISSION), async function(req, res, next) {
+  try {
+    let id = req.params.id;
+    let category = await categoryModel.findById(id);
+    category.name = req.body.name;
+    await category.save();
+    res.status(200).send({
+      success:true,
+      data:category
+    });
+  } catch (error) {
+    res.status(404).send({
       success:false,
       message:error.message
     });
@@ -58,11 +70,11 @@ router.post('/', async function(req, res, next) {
 }
 );
 
-router.put('/:id', async function(req, res, next) {
+router.delete('/:id',check_authentication(constants.ADMIN_PERMISSION), async function(req, res, next) {
   try {
     let id = req.params.id;
-    let category = await categoryModel.findByIdAndUpdate
-    (id, req.body, {new:true});
+    let category = await categoryModel.findById(id);
+    await category.delete();
     res.status(200).send({
       success:true,
       data:category
@@ -70,24 +82,7 @@ router.put('/:id', async function(req, res, next) {
   } catch (error) {
     res.status(404).send({
       success:false,
-      message:"khong co id phu hop"
-    });
-  }
-}
-);  
-
-router.delete('/:id', async function(req, res, next) {
-  try {
-    let id = req.params.id;
-    let category = await categoryModel.findByIdAndDelete(id);
-    res.status(200).send({
-      success:true,
-      data:category
-    });
-  } catch (error) {
-    res.status(404).send({
-      success:false,
-      message:"khong co id phu hop"
+      message:error.message
     });
   }
 }
