@@ -3,9 +3,6 @@ const { ConnectionCheckOutFailedEvent } = require('mongodb');
 var router = express.Router();
 let productModel = require('../schemas/product')
 let CategoryModel = require('../schemas/category')
-let {check_authentication} = require('../utils/check_auth');
-const { MOD_PERMISSION } = require('../utils/constants');
-const constants = require('../utils/constants');
 
 function buildQuery(obj){
   console.log(obj);
@@ -44,7 +41,6 @@ router.get('/', async function(req, res, next) {
     data:products
   });
 });
-
 router.get('/:id', async function(req, res, next) {
   try {
     let id = req.params.id;
@@ -61,7 +57,7 @@ router.get('/:id', async function(req, res, next) {
   }
 });
 
-router.post('/' , check_authentication(constants.MOD_PERMISSION),async function(req, res, next) {
+router.post('/', async function(req, res, next) {
   try {
     let cate = await CategoryModel.findOne({name:req.body.category})
     if(cate){
@@ -89,8 +85,7 @@ router.post('/' , check_authentication(constants.MOD_PERMISSION),async function(
     });
   }
 });
-
-router.put('/:id',check_authentication(constants.MOD_PERMISSION), async function(req, res, next) {
+router.put('/:id', async function(req, res, next) {
   try {
     let updateObj = {};
     let body = req.body;
@@ -126,8 +121,7 @@ router.put('/:id',check_authentication(constants.MOD_PERMISSION), async function
     });
   }
 });
-
-router.delete('/:id',check_authentication(constants.ADMIN_PERMISSION), async function(req, res, next) {
+router.delete('/:id', async function(req, res, next) {
   try {
     let product = await productModel.findById(req.params.id);
     if(product){

@@ -1,8 +1,6 @@
 var express = require('express');
 var router = express.Router();
-let categoryModel = require('../schemas/category');
-let {check_authentication} = require('../utils/check_auth');
-
+let categoryModel = require('../schemas/category')
 
 
 /* GET users listing. */
@@ -16,7 +14,6 @@ router.get('/', async function(req, res, next) {
     data:categories
   });
 });
-
 router.get('/:id', async function(req, res, next) {
   try {
     let id = req.params.id;
@@ -33,7 +30,7 @@ router.get('/:id', async function(req, res, next) {
   }
 });
 
-router.post('/',check_authentication(constants.MOD_PERMISSION), async function(req, res, next) {
+router.post('/', async function(req, res, next) {
   try {
     let newCategory = new categoryModel({
       name: req.body.name,
@@ -50,42 +47,5 @@ router.post('/',check_authentication(constants.MOD_PERMISSION), async function(r
     });
   }
 });
-
-router.put('/:id',check_authentication(constants.MOD_PERMISSION), async function(req, res, next) {
-  try {
-    let id = req.params.id;
-    let category = await categoryModel.findById(id);
-    category.name = req.body.name;
-    await category.save();
-    res.status(200).send({
-      success:true,
-      data:category
-    });
-  } catch (error) {
-    res.status(404).send({
-      success:false,
-      message:error.message
-    });
-  }
-}
-);
-
-router.delete('/:id',check_authentication(constants.ADMIN_PERMISSION), async function(req, res, next) {
-  try {
-    let id = req.params.id;
-    let category = await categoryModel.findById(id);
-    await category.delete();
-    res.status(200).send({
-      success:true,
-      data:category
-    });
-  } catch (error) {
-    res.status(404).send({
-      success:false,
-      message:error.message
-    });
-  }
-}
-);
 
 module.exports = router;
